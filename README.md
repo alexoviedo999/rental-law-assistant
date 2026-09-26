@@ -8,7 +8,7 @@ sdk_version: 4.44.1
 app_file: app.py
 pinned: false
 license: mit
-short_description: Agentic rental-law assistant with Jev judgments and a held draft
+short_description: Jev judgments. Draft shown only on success.
 ---
 
 # Rental law assistant
