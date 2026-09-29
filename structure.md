@@ -69,6 +69,8 @@ Cell 72 is the bug. A failed audit sets `exit_reason` to `hitl_escalation` and l
 
 `out_of_scope` and `guardrail` are refusals. `insufficient_info` and `hitl_escalation` are handoffs.
 
+The Space shows the Jev categories and scores for that run: scope, needs_fact, missing_fact, hostile, sufficiency, and the three audit scores. Audit scores are 1 to 5. A pass is 3.0 or higher.
+
 The seven runs that exercise these exits start at cell 141.
 
 | Run | Cells | What it is for |
@@ -171,8 +173,8 @@ Policy text is the authority. Case text is optional support. The draft is writte
 | Split and embed the two PDFs | 96, 99 | An embedding model. Not Jev | Policy chunks are 2000 characters with 200 overlap. Case chunks are 1150 with 50 overlap. Cell 98 says why the sizes differ |
 | Policy search | 103 | Python | Attempt 1 fetches the nearest 5. Each later attempt fetches `5 × attempt` and keeps at most 5 passages not already seen. Nothing new returns the text `NO_NEW_POLICIES` |
 | Case search, once | 106 | Python | The comment says one case. The call returns the top 4 chunks. No case is allowed. It does not expand |
-| Sufficiency | 109 | Jev. The notebook uses `llm` | Choice: `SUFFICIENT` or `INSUFFICIENT`, on the policy passages only. The notebook also asks for a 0–1 confidence |
-| Draft | 112 | OpenRouter (`x-ai/grok-4.7`). The notebook uses `llm` | Writes from the question, the policy passages, the case passages, and any clarification. Policy is the source. A case is cited only at the end, and only when it supports the policy. No outside facts |
+| Sufficiency | 109 | Jev. The notebook uses `llm` | Choice: `SUFFICIENT` or `INSUFFICIENT`, on the policy passages only. A passage that states the rule still counts when it omits a number, a duration, or a dollar amount. The notebook also asks for a 0–1 confidence |
+| Draft | 112 | OpenRouter (`x-ai/grok-4.7`). The notebook uses `llm` | Writes from the question, the policy passages, the case passages, and any clarification. Policy is the source. A case is cited only at the end, and only when it supports the policy. No outside facts. When the question asks for a number the passages do not state, the draft says so and does not fill it in |
 | Run the order | 119 | Python | Scan every passage before keeping it. Three policy attempts maximum. Then either `insufficient_info` with no draft, or the draft and on to audit |
 
 The order Python runs, which cell 117 already writes down and then hands to the model:
@@ -208,7 +210,7 @@ A pass stamps `success`. Finalise then copies the draft into `final_output`. Any
 | Groundedness, 1–5. Is every claim supported by the retrieved passages? | 124 | Jev, same call | At least 3.0 |
 | Coherence, 1–5. Do the question, the policy passages, and the draft agree? | 127 | Jev. The notebook uses `eval_llm` | At least 3.0 |
 | The path finished | 127 counts tool names. In the rebuild Python checks the record | Python | Policy passages exist, sufficiency was `SUFFICIENT`, and `held_output` is non-empty. An empty case archive still passes |
-| Retrieval confidence | Declared in 129 and 130. Never read by 132 | Python compares the confidence Jev returned with sufficiency | At least 0.60 |
+| Retrieval confidence | Declared in 129 and 130. Never read by 132 | Python compares the probability of the chosen sufficiency label | At least 0.50 |
 
 Cell 130 also sets the three 3.0 bars. The prose notes in cell 124 are dropped. Jev returns the scores.
 
@@ -283,7 +285,7 @@ The map above is the whole notebook. Building follows that map in an order where
 | 4 | Chunk both PDFs, embed them, policy search with a chunk id, one case search | The same page can contribute more than one passage. An empty case archive does not stop the run | OpenRouter `openai/text-embedding-3-small`. Not Jev. The offline checks still use the word-count hash |
 | 5 | Sufficiency on the policy passages only, at most three attempts | Thin policy expands. After three misses the stamp is `insufficient_info` and `held_output` is empty. Case text is not part of the judgment | Jev |
 | 6 | The draft | Written only after sufficiency passes, into `held_output`. Policy is the source. A case is cited at the end only when it supports the policy | OpenRouter (`x-ai/grok-4.7`), key `OPENROUTER_API_KEY` |
-| 7 | The audit gate | Test 4 with a mismatched case stamps `hitl_escalation` and the person sees the handoff sentence. A missing score fails. Retrieval confidence below 0.60 fails | Jev for the three scores. Python for the path and the 0.60 bar |
+| 7 | The audit gate | Test 4 with a mismatched case stamps `hitl_escalation` and the person sees the handoff sentence. A missing score fails. A sufficiency probability below 0.50 fails | Jev for the three scores. Python for the path and the 0.50 bar |
 | 8 | The seven rows and the board | Exit accuracy, escalation accuracy, groundedness, path, and latency, as defined in the seven-runs section. Cell 168's gap is closed by passing the hostile reply in | None |
 
 ## Where the lessons left off
