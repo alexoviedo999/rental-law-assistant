@@ -69,7 +69,7 @@ Cell 72 is the bug. A failed audit sets `exit_reason` to `hitl_escalation` and l
 
 `out_of_scope` and `guardrail` are refusals. `insufficient_info` and `hitl_escalation` are handoffs.
 
-The Space shows the Jev categories and scores for that run: scope, needs_fact, missing_fact, hostile, sufficiency, and the three audit scores. Audit scores are 1 to 5. A pass is 3.0 or higher.
+The Space is a Streamlit chat. The right side keeps past questions from this session and quick actions. The bottom is the audit trail. The Jev categories and scores stay on the latest run and in that trail: scope, needs_fact, missing_fact, hostile, sufficiency, and the three audit scores. Audit scores are 1 to 5. A pass is 3.0 or higher. The sufficiency score is the probability of that choice.
 
 The seven runs that exercise these exits start at cell 141.
 
